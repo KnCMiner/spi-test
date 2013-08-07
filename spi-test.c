@@ -10,6 +10,12 @@
  * the Free Software Foundation; either version 2 of the License.
  *
  * Cross-compile with cross-gcc -I/path/to/cross-kernel/include
+ *
+ * To test PCI-to-tinySPI implementation on ORSoC ARMSoC borad:
+ *  ./spi-test -CHO -D /dev/spidev0.0  0x80,0,0,0,0,0,0,0
+ * Expected output is:
+ * 80 00 00 00 00 00 00 00
+ * FF FF FF FE 00 08 A0 01
  */
 
 #include <stdint.h>
@@ -65,6 +71,22 @@ static void add_transfer(char * data, int len)
 
 static void show_spi_xfrs(void)
 {
+	int i, j;
+	struct spi_ioc_transfer *xfr;
+
+	for (i = 0; i < ntransfers; ++i) {
+		xfr = &spi_xfrs[i];
+		for (j = 0; j < xfr->len; ++j) {
+			printf(" %02X",
+			       ((unsigned char *)(void *)xfr->tx_buf)[j]);
+		}
+		printf("\n");
+		for (j = 0; j < xfr->len; ++j) {
+			printf(" %02X",
+			       ((unsigned char *)(void *)xfr->rx_buf)[j]);
+		}
+		printf("\n\n");
+	}
 }
 
 static void transfer(int fd)
