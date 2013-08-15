@@ -45,6 +45,7 @@ static uint16_t delay = 0;
 static struct spi_ioc_transfer *spi_xfrs = NULL;
 static int ntransfers = 0;
 static int toggle_cs = 0;
+static int block_length = 0;
 
 static void add_transfer(char * data, int len)
 {
@@ -124,6 +125,7 @@ static void parse_opts(int argc, char *argv[])
 			{ "speed",   1, 0, 's' },
 			{ "delay",   1, 0, 'd' },
 			{ "bpw",     1, 0, 'b' },
+			{ "len",     1, 0, 'n' },
 			{ "loop",    0, 0, 'l' },
 			{ "cpha",    0, 0, 'H' },
 			{ "cpol",    0, 0, 'O' },
@@ -153,6 +155,9 @@ static void parse_opts(int argc, char *argv[])
 			break;
 		case 'b':
 			bits = strtol(optarg, NULL, 0);
+			break;
+		case 'n':
+			block_length = strtol(optarg, NULL, 0);
 			break;
 		case 'l':
 			mode |= SPI_LOOP;
@@ -201,16 +206,29 @@ void parse_transfer(char *arg)
 	add_transfer(buf, len);
 }
 
+void make_bulk_transfer(int len)
+{
+	uint8_t *buf = malloc(len);
+	if (NULL == buf)
+		pabort("malloc failed");
+	memset(buf, 0xCB, len);
+	add_transfer(buf, len);
+}
+
 int main(int argc, char *argv[])
 {
 	int ret = 0;
 	int fd;
+	unsigned i;
 
 	parse_opts(argc, argv);
 
-	while (optind < argc)
-		parse_transfer(argv[optind++]);
-
+	if (block_length > 0) {
+		make_bulk_transfer(block_length);
+	} else {
+		while (optind < argc)
+			parse_transfer(argv[optind++]);
+	}
 
 	fd = open(device, O_RDWR);
 	if (fd < 0)
@@ -249,9 +267,17 @@ int main(int argc, char *argv[])
 	if (ret == -1)
 		pabort("can't get max speed hz");
 
-	transfer(fd);
-
-	show_spi_xfrs();
+	if (block_length > 0) {
+		i = 0;
+		while (1) {
+			transfer(fd);
+			printf("%u\n", i);
+			++i;
+		}
+	} else {
+		transfer(fd);
+		show_spi_xfrs();
+	}
 
 	close(fd);
 
