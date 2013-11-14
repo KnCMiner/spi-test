@@ -1,4 +1,4 @@
-CFLAGS=-g -mcpu=arm922t
+CFLAGS=-g
 
 all: spi-test
 
