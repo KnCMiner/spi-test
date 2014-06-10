@@ -46,6 +46,7 @@ static struct spi_ioc_transfer *spi_xfrs = NULL;
 static int ntransfers = 0;
 static int toggle_cs = 0;
 static int block_length = 0;
+static int quiet = 0;
 
 static void add_transfer(char * data, int len)
 {
@@ -112,6 +113,7 @@ static void print_usage(const char *prog)
 	     "  -L --lsb      least significant bit first\n"
 	     "  -C --cs-high  chip select active high\n"
 	     "  -3 --3wire    SI/SO signals shared\n"
+	     "  -q --quiet    Don't output data send/received\n"
 	     "  data is a series of octets to send, separated by comma, or b# to switch to another bits per word\n"
 	);
 	exit(1);
@@ -134,11 +136,12 @@ static void parse_opts(int argc, char *argv[])
 			{ "3wire",   0, 0, '3' },
 			{ "no-cs",   0, 0, 'N' },
 			{ "ready",   0, 0, 'R' },
+			{ "quiet",   0, 0, 'q' },
 			{ NULL, 0, 0, 0 },
 		};
 		int c;
 
-		c = getopt_long(argc, argv, "D:s:d:b:n:lHOLC3NR", lopts, NULL);
+		c = getopt_long(argc, argv, "D:s:d:b:n:lHOLC3NRq", lopts, NULL);
 
 		if (c == -1)
 			break;
@@ -182,6 +185,9 @@ static void parse_opts(int argc, char *argv[])
 			break;
 		case 'R':
 			mode |= SPI_READY;
+			break;
+		case 'q':
+			quiet = 1;
 			break;
 		default:
 			print_usage(argv[0]);
@@ -276,7 +282,8 @@ int main(int argc, char *argv[])
 		}
 	} else {
 		transfer(fd);
-		show_spi_xfrs();
+		if (!quiet)
+			show_spi_xfrs();
 	}
 
 	close(fd);
