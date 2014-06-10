@@ -205,11 +205,27 @@ void parse_transfer(char *arg)
 		if (*value == 'b') {
 			value++;
 			bits = strtol(value, NULL, 0);
+		} else if (*value == '@') {
+			value++;
+			FILE *in = fopen(value, "rb");
+			if (!in) {
+				perror("Failed to open input file");
+				exit(1);
+			}
+			while ((len = fread(buf, 1, 2048, in)) > 0) {
+				add_transfer(buf, len);
+			}
+			if (ferror(in)) {
+				perror("Failed to read input file");
+				exit(1);
+			}
+			fclose(in);
 		} else {
 			buf[len++] = strtol(value, NULL, 0);
 		}
 	}
-	add_transfer(buf, len);
+	if (len > 0)
+		add_transfer(buf, len);
 }
 
 void make_bulk_transfer(int len)
