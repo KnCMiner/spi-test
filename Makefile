@@ -1,5 +1,3 @@
-CFLAGS=-g
-
 all: spi-test
 
 clean: clean-spi-test-debug
@@ -15,3 +13,6 @@ clean-spi-test:
 
 spi-test: spi-test-debug
 	$(CROSS_COMPILE)strip spi-test-debug -o spi-test	
+
+spi-test-simple: spi-test.c
+	$(CC) $(CFLAGS) spi-test.c -o spi-test
