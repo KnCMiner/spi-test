@@ -80,12 +80,12 @@ static void show_spi_xfrs(void)
 		xfr = &spi_xfrs[i];
 		for (j = 0; j < xfr->len; ++j) {
 			printf(" %02X",
-			       ((unsigned char *)(void *)xfr->tx_buf)[j]);
+			       ((unsigned char *)(intptr_t)xfr->tx_buf)[j]);
 		}
 		printf("\n");
 		for (j = 0; j < xfr->len; ++j) {
 			printf(" %02X",
-			       ((unsigned char *)(void *)xfr->rx_buf)[j]);
+			       ((unsigned char *)(intptr_t)xfr->rx_buf)[j]);
 		}
 		printf("\n\n");
 	}
